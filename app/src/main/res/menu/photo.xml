@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/resolve" android:title="解析"></item>
+    <item android:id="@+id/rePhoto" android:title="重新拍照"></item>
+</menu>
