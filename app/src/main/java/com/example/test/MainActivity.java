@@ -45,13 +45,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.IllegalFormatCodePointException;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
     private final static String TAG = "testTag";
-    private final static int modifyStatus = 2;
+    private final static int RENAME = 2;
     final static int SPEAK = 1;
     //界面UI控件
     private Button btn_camera;
@@ -73,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
     //作为识别结果，若5s内没有变化，则更改flag,并且熄灭等待唤醒
     private long currenTime ;
     private Thread timeThread;
+
     private IWakeupListener wakeupListener= new IWakeupListener() {
         @Override
         public void onSuccess(String word, WakeUpResult result) {
@@ -81,8 +83,7 @@ public class MainActivity extends AppCompatActivity {
             //停止唤醒识别
             myWakeup.stop();
             //初始化识别控件
-            recogEventAdapter = new RecogEventAdapter(iRecogListener);
-            myRecognizer = new MyRecognizer(MainActivity.this,recogEventAdapter);
+            initRecog();
             //成功后操作
             SpeakVoiceUtil.getInstance(getApplicationContext()).speak("你好你好，有什么需要问我的吗？");
             wakeupFlag = true;
@@ -158,8 +159,8 @@ public class MainActivity extends AppCompatActivity {
         public void onAsrFinalResult(String[] results, RecogResult recogResult) {
             Gson gson = new Gson();
             ASRresponse asRresponse = gson.fromJson(recogResult.getOrigalJson(), ASRresponse.class);
-            String best_result = asRresponse.getBest_result().replace('，',' ').trim();
-            Log.d(TAG, "onAsrPartialResult2: "+best_result);
+            String best_result = asRresponse.getBest_result().replace('，', ' ').trim();
+            Log.d(TAG, "onAsrPartialResult2: " + best_result);
         }
 
         @Override
@@ -210,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
                     SpeakVoiceUtil.getInstance(getApplicationContext()).speak(result_voice);
                     testShow.setText(result_voice);
                     break;
-                case modifyStatus:
+                case RENAME:
                     break;
             }
 
@@ -226,7 +227,13 @@ public class MainActivity extends AppCompatActivity {
         initPermission();
         //初始化参数
         initParams();
-        myWakeup.start(wakeupParams);
+//        myRecognizer.start(recogparams);
+       myWakeup.start(wakeupParams);
+    }
+    //初始化识别器
+    public void initRecog(){
+        recogEventAdapter = new RecogEventAdapter(iRecogListener);
+        myRecognizer = new MyRecognizer(MainActivity.this,recogEventAdapter);
     }
     public void initParams(){
         //初始化识别参数
@@ -235,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
         recogparams.put("accept-audio-volume",true);
         recogparams.put("pid",1537);
         //初始化唤醒参数
-        wakeupParams.put(SpeechConstant.WP_WORDS_FILE, "assets://WakeUp.bin");
+       wakeupParams.put(SpeechConstant.WP_WORDS_FILE, "assets://WakeUp.bin");
     }
     //初始化组件
     public void init_component() {
@@ -244,7 +251,7 @@ public class MainActivity extends AppCompatActivity {
         imageHolder = (SurfaceView) findViewById(R.id.imageholder);
         imageHolder.getHolder().addCallback(cpHolderCalback);
         testShow = (TextView)findViewById(R.id.showText);
-        //初始化唤醒适配器
+//        //初始化唤醒适配器
         wakeupAdapter = new WakeupEventAdapter(wakeupListener);
         myWakeup = new MyWakeup(this,wakeupAdapter);
         //点击屏幕拍照
